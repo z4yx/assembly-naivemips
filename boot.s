@@ -9,6 +9,9 @@ __start:
   li $t1,0x0        #gpio1 all input
   sw $t1,0xc($s0)
 
+  sw $s0,0($0)
+  lw $t3,0($0)
+
   lw $t2,0x8($s0) #read DIP switch
   li $t1,1
   and $t2,$t2,$t1
@@ -16,21 +19,26 @@ __start:
   nop
 
 uart_cmd:
-  li $t0,2
+  li $t0,0x80000
   sw $t0,0($s0) #LED indicates wait state
   #get cmd
   jal getbyte
   nop
+
   or $s1,$v0,$zero
   #check cmd
   slti $t1,$s1,0x30
   bne $t1,$zero,bad_cmd
-  li $t1,0x34
+  li $t1,0x35
   slt $t1,$t1,$s1
   bne $t1,$zero,bad_cmd
   nop
   li $a0,0x7e
   jal putbyte
+  nop
+
+  li $t0,0x35
+  beq $s1,$t0,uart2uart
   nop
   
   #get start address
@@ -62,7 +70,7 @@ uart_cmd:
   beq $s1,$t0,flash2uart
   nop
 bad_cmd:
-  li $t0,4
+  li $t0,0x80000000
   sw $t0,0($s0) #LED indicates unknown command
 stop:
   b stop
@@ -70,18 +78,49 @@ stop:
 
 run:
   jr $s2
+  nop
 
 flash2ram:
+  li $t2,0xbe000000
+  li $t3,0
+  li $t5,0x100
+flash2ram_next:
+  sll $t4,$t3,1
+  add $t4,$t4,$t2
+  lw $0,0($t4)
+  lw $0,0($t4)
+  lw $0,0($t4)
+  lw $t0,0($t4)
+  lw $0,4($t4)
+  lw $0,4($t4)
+  lw $0,4($t4)
+  lw $t1,4($t4)
+  sll $t1,$t1,16
+  or $t0,$t0,$t1
+  sw $t0,0($t3)
+  addi $t3,$t3,4
+  bne $t3,$t5, flash2ram_next
+  nop
   b flash2ram
+  nop
+
+uart2uart:
+  jal getword
+  nop
+  or $a0,$zero,$v0
+  sw $v0,0($s0) #LED indicates data
+  jal putword
+  nop
+  b uart2uart
   nop
 
 uart2ram:
   sll $s3,$s3,2
   add $s3,$s3,$s2
 uart2ram_next:
+  sw $s2,0($s0) #LED indicates current address
   jal getword
   nop
-  sw $s2,0($s0) #LED indicates current address
   sw $v0,0($s2)
   addi $s2,$s2,4
   bne $s3,$s2,uart2ram_next
@@ -120,7 +159,8 @@ chk_rx:
   nop
   lw $v0,0x4($t0)
   jr $ra
-  sw $t1,0xc($t0) #clear received
+  # sw $t1,0xc($t0) #clear received
+  nop
 
 putbyte:
   li $t0,0x1fd003f0
@@ -141,7 +181,7 @@ chk_rx_w:
   beq $t1,$0,chk_rx_w
   nop
   lw $t2,0x4($t0)
-  sw $t1,0xc($t0) #clear received
+  # sw $t1,0xc($t0) #clear received
 
   sll $t2,$t2,24
   srl $v0,$v0,8
