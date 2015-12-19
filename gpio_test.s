@@ -2,7 +2,7 @@
 .set noat
 .globl __start
 __start:
-  li $a0,0x1fd00400
+  li $a0,0xbfd00400
 
   # li $a1,0xffff0000
   # sw $a1,4($a0)

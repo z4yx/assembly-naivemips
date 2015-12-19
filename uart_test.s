@@ -2,7 +2,7 @@
 .set noat
 .globl __start
 __start:
-  li $a0,0x1fd003f0
+  li $a0,0xbfd003f0
 chk_rx:
   lb $a1,0xc($a0)
   andi $a1,$a1,2

@@ -15,14 +15,21 @@ SRC   := $(wildcard *.s)
 COES  := $(patsubst %.s, %.coe, $(SRC))
 MIFS  := $(patsubst %.s, %.mif, $(SRC))
 BINS  := $(patsubst %.s, %.bin, $(SRC))
+MEMS  := $(patsubst %.s, %.mem, $(SRC))
 
-all: xilinx altera $(BINS)
+all: xilinx altera sim $(BINS)
 
 xilinx: $(COES)
 	@echo "Generated: " $(COES)
 
 altera: $(MIFS)
 	@echo "Generated: " $(MIFS)
+
+sim: $(MEMS)
+
+%.mem: %.bin
+	hexdump -v -e '"%08x\n"' $< >$@
+	$(foreach n, $^ , spilt_word.py $@ <$(n);) 
 
 %.coe: %.rom.bin
 	bin2coe.py  32 <$^ >$@
@@ -31,16 +38,16 @@ altera: $(MIFS)
 	bin2mif.py  32 <$^ >$@
 
 %.rom.bin: %.rom.elf
-	$(OBJCOPY) -O binary  -S $^ $@
+	$(OBJCOPY) -j .text -O binary  -S $^ $@
 
 %.rom.elf: %.o
 	$(LD) -EL -n -G0 -Ttext 0xbfc00000 -o $@ $^
 
 %.bin: %.elf
-	$(OBJCOPY) -O binary  -S $^ $@
+	$(OBJCOPY) -j .text -O binary $^ $@
 
 %.elf: %.o
-	$(LD) -EL -n -G0 -Ttext 0x00000000 -o $@ $^
+	$(LD) -EL -n -G0 -Ttext 0x80000000 -o $@ $^
 
 %.o: %.s
 	$(CC) $(CFLAGS) -g -c -o $@ $^

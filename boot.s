@@ -2,15 +2,12 @@
 .set noat
 .globl __start
 __start:
-  li $s0,0x1fd00400
+  li $s0,0xbfd00400
 
   li $t1,0xffffffff #gpio0 all output
   sw $t1,4($s0)
   li $t1,0x0        #gpio1 all input
   sw $t1,0xc($s0)
-
-  sw $s0,0($0)
-  lw $t3,0($0)
 
   lw $t2,0x8($s0) #read DIP switch
   li $t1,1
@@ -40,7 +37,7 @@ uart_cmd:
   li $t0,0x35
   beq $s1,$t0,uart2uart
   nop
-  
+
   #get start address
   jal getword
   nop
@@ -50,7 +47,7 @@ uart_cmd:
   li $t0,0x34
   beq $s1,$t0,run
   nop
-  
+
   #get word count
   jal getword
   nop
@@ -151,7 +148,7 @@ flash2uart:
   nop
 
 getbyte:
-  li $t0,0x1fd003f0
+  li $t0,0xbfd003f0
 chk_rx:
   lw $t1,0xc($t0) #UART status
   andi $t1,$t1,2
@@ -163,7 +160,7 @@ chk_rx:
   nop
 
 putbyte:
-  li $t0,0x1fd003f0
+  li $t0,0xbfd003f0
 chk_tx:
   lw $t1,0xc($t0)
   andi $t1,$t1,1
@@ -174,7 +171,7 @@ chk_tx:
 
 getword:
   li $t4,8
-  li $t0,0x1fd003f0
+  li $t0,0xbfd003f0
 chk_rx_w:
   lw $t1,0xc($t0) #UART status
   andi $t1,$t1,2
@@ -186,7 +183,7 @@ chk_rx_w:
   sll $t2,$t2,24
   srl $v0,$v0,8
   or $v0,$v0,$t2
-  
+
   srl $t4,$t4,1
   bne $t4,$zero,chk_rx_w
   nop
@@ -196,7 +193,7 @@ chk_rx_w:
 
 putword:
   li $t4,8
-  li $t0,0x1fd003f0
+  li $t0,0xbfd003f0
 chk_tx_w:
   lw $t1,0xc($t0)
   andi $t1,$t1,1
@@ -210,5 +207,3 @@ chk_tx_w:
 
   jr $ra
   nop
-
-
