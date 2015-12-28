@@ -3,6 +3,12 @@
 .globl __start
 __start:
   li $s0,0xbfd00400
+  li $s1,0x80001000
+  li $s2,0xface1234
+  sw $s0, 0($s1)
+  sw $s2, 4($s1)
+  lw $t0, 0($s1)
+  lw $t1, 4($s1)
 
   li $t1,0xffffffff #gpio0 all output
   sw $t1,4($s0)
@@ -78,27 +84,7 @@ run:
   nop
 
 flash2ram:
-  li $t2,0xbe000000
-  li $t3,0
-  li $t5,0x100
-flash2ram_next:
-  sll $t4,$t3,1
-  add $t4,$t4,$t2
-  lw $0,0($t4)
-  lw $0,0($t4)
-  lw $0,0($t4)
-  lw $t0,0($t4)
-  lw $0,4($t4)
-  lw $0,4($t4)
-  lw $0,4($t4)
-  lw $t1,4($t4)
-  sll $t1,$t1,16
-  or $t0,$t0,$t1
-  sw $t0,0($t3)
-  addi $t3,$t3,4
-  bne $t3,$t5, flash2ram_next
-  nop
-  b flash2ram
+  b load_elf  #implemented in bootasm.S
   nop
 
 uart2uart:
@@ -207,3 +193,5 @@ chk_tx_w:
 
   jr $ra
   nop
+
+#include "bootasm.S"

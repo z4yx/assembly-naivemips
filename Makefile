@@ -50,4 +50,4 @@ sim: $(MEMS)
 	$(LD) -EL -n -G0 -Ttext 0x80000000 -o $@ $^
 
 %.o: %.s
-	$(CC) $(CFLAGS) -g -c -o $@ $^
+	$(CC) $(CFLAGS) -x assembler-with-cpp -g -c -o $@ $^
