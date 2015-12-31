@@ -126,6 +126,19 @@ ram2uart_next:
   nop
 
 uart2flash:
+  sll $s3,$s3,2
+  add $s3,$s3,$s2
+uart2flash_next:
+  sw $s2,0($s0) #LED indicates current address
+  jal getword
+  nop
+  li $t0,0x40
+  sw $t0,0($s2)
+  nop
+  sw $v0,0($s2)
+  addi $s2,$s2,4
+  bne $s3,$s2,uart2flash_next
+  nop
   b uart_cmd
   nop
 
