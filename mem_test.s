@@ -2,6 +2,7 @@
 .set noat
 .globl __start
 __start:
+  li $s0, 0xbfd00500
   li $t7, 0xfaceface
   li $t1, 0xa0000100
   sw $t7, 0($t1)
@@ -12,7 +13,7 @@ wr_mem:
   sw $t0, 0($t0)
   addi $t0,$t0,4
   bne $t0,$t1,wr_mem
-  nop
+  lw $t6, 0($s0)
 
   li $t0, 0
 rd_mem:
