@@ -10,7 +10,7 @@ __start:
   li $t1, 0x80002000
 wr_mem:
   sw $t0, 0($t0)
-  addi $t0,$t0,4
+  addiu $t0,$t0,4
   bne $t0,$t1,wr_mem
   nop
   li $t0, 0
@@ -18,7 +18,7 @@ rd_mem:
   lw $t2, 0($t0)
   bne $t2,$t0,wrong
   nop
-  addi $t0,$t0,4
+  addiu $t0,$t0,4
   bne $t0,$t1,rd_mem
   nop
   b __start

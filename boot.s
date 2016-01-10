@@ -93,13 +93,13 @@ uart2uart:
 
 uart2ram:
   sll $s3,$s3,2
-  add $s3,$s3,$s2
+  addu $s3,$s3,$s2
 uart2ram_next:
   sw $s2,0($s0) #LED indicates current address
   jal getword
   nop
   sw $v0,0($s2)
-  addi $s2,$s2,4
+  addiu $s2,$s2,4
   bne $s3,$s2,uart2ram_next
   nop
   b uart_cmd
@@ -107,13 +107,13 @@ uart2ram_next:
 
 ram2uart:
   sll $s3,$s3,2
-  add $s3,$s3,$s2
+  addu $s3,$s3,$s2
 ram2uart_next:
   sw $s2,0($s0) #LED indicates current address
   lw $a0,0($s2)
   jal putword
   nop
-  addi $s2,$s2,4
+  addiu $s2,$s2,4
   bne $s3,$s2,ram2uart_next
   nop
   b uart_cmd
@@ -121,7 +121,7 @@ ram2uart_next:
 
 uart2flash:
   sll $s3,$s3,2
-  add $s3,$s3,$s2
+  addu $s3,$s3,$s2
 uart2flash_next:
   sw $s2,0($s0) #LED indicates current address
   jal getword

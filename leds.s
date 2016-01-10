@@ -53,7 +53,7 @@ delay:
   li $t0,0
   li $t1,0xffff
 delay_1:
-  addi $t0,$t0,1
+  addiu $t0,$t0,1
   bne $t0,$t1,delay_1
   nop
   b loop
