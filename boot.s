@@ -3,12 +3,6 @@
 .globl __start
 __start:
   li $s0,0xbfd00400
-  li $s1,0x80001000
-  li $s2,0xface1234
-  sw $s0, 0($s1)
-  sw $s2, 4($s1)
-  lw $t0, 0($s1)
-  lw $t1, 4($s1)
 
   li $t1,0xffffffff #gpio0 all output
   sw $t1,4($s0)
@@ -69,9 +63,9 @@ uart_cmd:
   li $t0,0x32
   beq $s1,$t0,uart2flash
   nop
-  li $t0,0x33
-  beq $s1,$t0,flash2uart
-  nop
+  # li $t0,0x33
+  # beq $s1,$t0,flash2uart
+  # nop
 bad_cmd:
   li $t0,0x80000000
   sw $t0,0($s0) #LED indicates unknown command
@@ -142,9 +136,9 @@ uart2flash_next:
   b uart_cmd
   nop
 
-flash2uart:
-  b uart_cmd
-  nop
+# flash2uart:
+#   b uart_cmd
+#   nop
 
 getbyte:
   li $t0,0xbfd003f0
@@ -153,7 +147,7 @@ chk_rx:
   andi $t1,$t1,2
   beq $t1,$0,chk_rx
   nop
-  lw $v0,0x4($t0)
+  lw $v0,0x8($t0)
   jr $ra
   # sw $t1,0xc($t0) #clear received
   nop
@@ -176,7 +170,7 @@ chk_rx_w:
   andi $t1,$t1,2
   beq $t1,$0,chk_rx_w
   nop
-  lw $t2,0x4($t0)
+  lw $t2,0x8($t0)
   # sw $t1,0xc($t0) #clear received
 
   sll $t2,$t2,24

@@ -2,6 +2,7 @@
 .set noat
 .globl __start
 __start:
+  #register tests
   li $1,1
   li $2,2
   li $3,3
@@ -33,6 +34,7 @@ __start:
   li $29,29
   li $30,30
   li $31,31
+  #end of register tests
 
   li $a0,0xbfd00400
 

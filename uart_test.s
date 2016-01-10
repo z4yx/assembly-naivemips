@@ -8,8 +8,8 @@ chk_rx:
   andi $a1,$a1,2
   beq $a1,$0,chk_rx
   nop
-  lw $a2,0x4($a0)
-  sw $a1,0xc($a0) #clear received
+  lw $a2,0x8($a0)
+  # sw $a1,0xc($a0) #clear received
 chk_tx:
   lb $a1,0xc($a0)
   andi $a1,$a1,1
