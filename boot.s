@@ -130,7 +130,16 @@ uart2flash_next:
   sw $t0,0($s2)
   nop
   sw $v0,0($s2)
-  addi $s2,$s2,4
+
+  li $t0,0x70
+wait_write:
+  sw $t0,0($s2) #Command: read status
+  nop
+  lw $t1,0($s2)
+  andi $t1,$t1,0x80
+  beq $t1,$zero,wait_write
+  nop
+  addiu $s2,$s2,4
   bne $s3,$s2,uart2flash_next
   nop
   b uart_cmd
