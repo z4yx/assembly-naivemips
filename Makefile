@@ -1,8 +1,8 @@
 
 GCCPREFIX:=mips-sde-elf-
 
-CFLAGS	:=  -fno-builtin -nostdlib  -nostdinc -g  -EL -G0 -Wformat -O2 -mno-float
-LDFLAGS	+= -nostdlib 
+override CFLAGS	+= -fno-builtin -nostdlib  -nostdinc -g  -EL -G0 -Wformat -O2 -mno-float
+override LDFLAGS	+= -nostdlib -EL -n -G0
 
 CC :=$(GCCPREFIX)gcc
 LD      := $(GCCPREFIX)ld
@@ -41,13 +41,13 @@ sim: $(MEMS)
 	$(OBJCOPY) -j .text -O binary  -S $^ $@
 
 %.rom.elf: %.o
-	$(LD) -EL -n -G0 -Ttext 0xbfc00000 -o $@ $^
+	$(LD) $(LDFLAGS) -Ttext 0xbfc00000 -o $@ $^
 
 %.bin: %.elf
 	$(OBJCOPY) -j .text -O binary $^ $@
 
 %.elf: %.o
-	$(LD) -EL -n -G0 -Ttext 0x80000000 -o $@ $^
+	$(LD) $(LDFLAGS) -Ttext 0x80000000 -o $@ $^
 
 %.o: %.s
 	$(CC) $(CFLAGS) -x assembler-with-cpp -g -c -o $@ $^
