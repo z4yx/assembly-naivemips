@@ -1,3 +1,16 @@
+  #Note: macro MACH_QEMU indicates original QEMU with 8250 serial controller
+  #      macro MACH_QSYS indicates SoC built in Quartus QSYS with Altera UART core
+
+#ifdef MACH_QSYS
+#define GPIO0_BASE 0xbfd00400
+#define GPIO1_BASE 0xbfd00410
+#define UART_BASE  0xbfd003e0
+#else
+#define GPIO0_BASE 0xbfd00400
+#define GPIO1_BASE 0xbfd00408
+#define UART_BASE  0xbfd003f0
+#endif
+
 .set noreorder
 .set noat
 .globl __start
@@ -19,18 +32,30 @@ __start:
   sb $0,4($s0)       #MCR=0
 #endif
 
-  li $s0,0xbfd00400
+  li $s1,GPIO1_BASE
+  sw $zero,0x4($s1) #gpio1 all input
 
-  li $t1,0xffffffff #gpio0 all output
-  sw $t1,4($s0)
-  li $t1,0x0        #gpio1 all input
-  sw $t1,0xc($s0)
+  li $s0,GPIO0_BASE
+  nor $t1,$zero,$zero
+  sw $t1,4($s0)     #gpio0 all output
 
-#ifndef MACH_QEMU
-  lw $t2,0x8($s0) #read DIP switch
+  lw $t2,0x0($s1)   #read DIP switch
   li $t1,1
   and $t2,$t2,$t1
   beq $t1,$t2,flash2ram  #SW0 is high, FlashToRam mode
+  nop
+
+#if 0
+  li $a0,48
+tmp:
+  jal getbyte
+  nop
+  move $a0,$v0
+  # addiu $a0,$a0,1
+  andi $a0,$a0,0x7f
+  jal putbyte
+  sw $a0,0($s0)
+  b tmp
   nop
 #endif
 
@@ -169,28 +194,38 @@ wait_write:
 #   nop
 
 getbyte:
-  li $t0,0xbfd003f0
+  li $t0,UART_BASE
 chk_rx:
-#ifdef MACH_QEMU
+#if defined(MACH_QEMU)
   lb $t1,13($t0)  #LSR
   andi $t1,$t1,1
+#elif defined(MACH_QSYS)
+  lh $t1,0x8($t0) #status
+  andi $t1,$t1,0x80
 #else
   lw $t1,0xc($t0) #UART status
   andi $t1,$t1,2
 #endif
   beq $t1,$0,chk_rx
   nop
+#if defined(MACH_QSYS)
+  lh $v0,0x0($t0)
+#else
   lb $v0,0x8($t0)
+#endif
   jr $ra
   # sw $t1,0xc($t0) #clear received
   nop
 
 putbyte:
-  li $t0,0xbfd003f0
+  li $t0,UART_BASE
 chk_tx:
-#ifdef MACH_QEMU
+#if defined(MACH_QEMU)
   lb $t1,13($t0)
   andi $t1,$t1,0x20
+#elif defined(MACH_QSYS)
+  lh $t1,0x8($t0) #status
+  andi $t1,$t1,0x40
 #else
   lw $t1,0xc($t0)
   andi $t1,$t1,1
@@ -198,22 +233,33 @@ chk_tx:
   beq $t1,$0,chk_tx
   nop
   jr $ra
+#if defined(MACH_QSYS)
+  sh $a0,0x4($t0)
+#else
   sb $a0,0x8($t0)
+#endif
 
 getword:
   li $t4,8
-  li $t0,0xbfd003f0
+  li $t0,UART_BASE
 chk_rx_w:
-#ifdef MACH_QEMU
+#if defined(MACH_QEMU)
   lb $t1,13($t0)  #LSR
   andi $t1,$t1,1
+#elif defined(MACH_QSYS)
+  lh $t1,0x8($t0) #status
+  andi $t1,$t1,0x80
 #else
   lw $t1,0xc($t0) #UART status
   andi $t1,$t1,2
 #endif
   beq $t1,$0,chk_rx_w
   nop
+#if defined(MACH_QSYS)
+  lh $t2,0x0($t0)
+#else
   lb $t2,0x8($t0)
+#endif
   # sw $t1,0xc($t0) #clear received
 
   sll $t2,$t2,24
@@ -229,18 +275,25 @@ chk_rx_w:
 
 putword:
   li $t4,8
-  li $t0,0xbfd003f0
+  li $t0,UART_BASE
 chk_tx_w:
-#ifdef MACH_QEMU
+#if defined(MACH_QEMU)
   lb $t1,13($t0)
   andi $t1,$t1,0x20
+#elif defined(MACH_QSYS)
+  lh $t1,0x8($t0) #status
+  andi $t1,$t1,0x40
 #else
   lw $t1,0xc($t0)
   andi $t1,$t1,1
 #endif
   beq $t1,$0,chk_tx_w
   nop
+#if defined(MACH_QSYS)
+  sh $a0,0x4($t0)
+#else
   sb $a0,0x8($t0)
+#endif
   srl $a0,$a0,8
   srl $t4,$t4,1
   bne $t4,$zero,chk_tx_w
