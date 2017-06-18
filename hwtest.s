@@ -47,19 +47,25 @@ test_other:
 memtest:
     li $t3, 0x80000400 #RAM start address
     li $t1, 0x80800000 #RAM end address
+    li $t5, 1103515245
+    li $t4, 0xdeadbeef
     or $t0, $0, $t3
 wr_mem:
-    sll $t4, $t0, 16
-    or $t4, $t0, $t4
+    mul $t4,$t4,$t5
+    addiu $t4,$t4,12345
     sw $t4, 0($t0)
+    sw $t0, 0($s0)
     addiu $t0,$t0,4
     bne $t0,$t1,wr_mem
     nop
     or $t0, $0, $t3
+    li $t5, 1103515245
+    li $t4, 0xdeadbeef
 rd_mem:
-    sll $t4, $t0, 16
-    or $t4, $t0, $t4
+    mul $t4,$t4,$t5
+    addiu $t4,$t4,12345
     lw $t2, 0($t0)
+    sw $t0, 0($s0)
     bne $t2,$t4,wrong
     nop
     addiu $t0,$t0,4
@@ -86,7 +92,12 @@ vga_loop:
     nop
 
 disp: 
+    addiu $s3,$s3,1
+    srl $t0,$s3,17
+    andi $t0,$t0,1
+    subu $t0,$0,$t0
     lw $t2,0x8($s0) #get DIP switch state
+    xor $t2,$t2,$t0
     sw $t2,0($s0)   #set LED
     jr $ra
     nop
