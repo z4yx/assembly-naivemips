@@ -17,7 +17,7 @@ __start:
     nop
     beq $v0, $0, pass_mem
     nop
-    li $t0, 0x03060000  #DPY="11"
+    li $t0, 0xec120000  #DPY="E1"
     sw $t0, 0($s0)
 fail_mem:
     b fail_mem
@@ -28,7 +28,7 @@ pass_mem:
     nop
     beq $v0, $0, pass_flash
     nop
-    li $t0, 0x2ddb0000  #DPY="22"
+    li $t0, 0xecbc0000  #DPY="E2"
     sw $t0, 0($s0)
 fail_flash:
     b fail_flash
