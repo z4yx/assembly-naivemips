@@ -82,9 +82,9 @@ uart_cmd:
   li $t0,0x32
   beq $s1,$t0,uart2flash
   nop
-  # li $t0,0x33
-  # beq $s1,$t0,flash2uart
-  # nop
+  li $t0,0x33
+  beq $s1,$t0,flash2uart
+  nop
 bad_cmd:
   li $t0,0x80000000
   sw $t0,0($s0) #LED indicates unknown command
@@ -139,34 +139,50 @@ ram2uart_next:
   nop
 
 uart2flash:
-  sll $s3,$s3,2
+  sll $s3,$s3,1
   addu $s3,$s3,$s2
 uart2flash_next:
   sw $s2,0($s0) #LED indicates current address
   jal getword
   nop
   li $t0,0x40
-  sw $t0,0($s2)
+  sh $t0,0($s2)
   nop
-  sw $v0,0($s2)
+  sh $v0,0($s2)
 
   li $t0,0x70
 wait_write:
-  sw $t0,0($s2) #Command: read status
+  sh $t0,0($s2) #Command: read status
   nop
-  lw $t1,0($s2)
+  lhu $t1,0($s2)
   andi $t1,$t1,0x80
   beq $t1,$zero,wait_write
   nop
-  addiu $s2,$s2,4
+  addiu $s2,$s2,2
   bne $s3,$s2,uart2flash_next
   nop
   b uart_cmd
   nop
 
-# flash2uart:
-#   b uart_cmd
-#   nop
+
+flash2uart:
+  li  $t0, 0xff
+  sh  $t0, 0($s2)
+  sll $s3,$s3,2
+  addu $s3,$s3,$s2
+flash2uart_next:
+  sw $s2,0($s0) # LED indicates current address
+  lhu $a0,0($s2) # 16-bit instruction is required for flash read
+  lhu $t0,2($s2)
+  sll $t0, $t0, 16
+  or $a0, $a0, $t0
+  jal putword
+  nop
+  addiu $s2,$s2,4
+  bne $s3,$s2,flash2uart_next
+  nop
+  b uart_cmd
+  nop
 
 getbyte:
   li $t0,0xbfd003f0

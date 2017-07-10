@@ -146,43 +146,43 @@ flash_test:
     li $s2, 0xbe000000
 
     li $t0, 0x90
-    sw $t0, 0($s2)
-    lw $t1, 0($s2) #Manufacture code
+    sh $t0, 0($s2)
+    lhu $t1, 0($s2) #Manufacture code
 
-    sw $t0, 0($s2)
-    lw $t1, 4($s2) #Device code
+    sh $t0, 0($s2)
+    lhu $t1, 2($s2) #Device code
 
     li $t0, 0x60
     li $t1, 0xd0
-    sw $t0, 0($s2)
-    sw $t1, 0($s2) #Clear Lock
+    sh $t0, 0($s2)
+    sh $t1, 0($s2) #Clear Lock
     jal wait_ready
     nop
 
     li $t0, 0x20
     li $t1, 0xd0
-    sw $t0, 0($s2)
-    sw $t1, 0($s2) #erase block 0
+    sh $t0, 0($s2)
+    sh $t1, 0($s2) #erase block 0
     jal wait_ready
     nop
 
     li $t0, 0xff
-    sw $t0, 0($s2)
-    lw $t0, 0($s2)
+    sh $t0, 0($s2)
+    lhu $t0, 0($s2)
     li $t1, 0xffff
     bne $t0, $t1, erase_fail
     nop
 
     li $t0, 0x40
     li $t1, 0x55aa
-    sw $t0, 0($s2) 
-    sw $t1, 0($s2) #byte program
+    sh $t0, 0($s2) 
+    sh $t1, 0($s2) #byte program
     jal wait_ready
     nop
 
     li $t0, 0xff
-    sw $t0, 0($s2)
-    lw $t0, 0($s2)
+    sh $t0, 0($s2)
+    lhu $t0, 0($s2)
     li $t1, 0x55aa
     bne $t0, $t1, prog_fail
     nop
@@ -202,8 +202,8 @@ wait_ready:
 wait_loop:
     beq $t2, $0, time_fail
     li $t0, 0x70
-    sw $t0, 0($s2)
-    lw $t1, 0($s2)
+    sh $t0, 0($s2)
+    lhu $t1, 0($s2)
     andi $t1,$t1,0x80
     beq $t1,$0,wait_loop
     sub $t2, $t2, $t3
