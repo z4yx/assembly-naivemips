@@ -9,7 +9,7 @@ __start:
     li $t1,0x0        #gpio1 all input
     sw $t1,0xc($s1)
 
-    li  $s0,0x80010000
+    li  $s0,0x80410000
     li  $a0,0x12345678
 
     sw $a0,0($s0)
@@ -83,6 +83,8 @@ __start:
     li $a0,0xface
     sh $a0,0($s0)
     lw $t0,0($s0)
+    jal show_and_wait
+    nop
     li $a0,0xdead
     sh $a0,2($s0)
     lw $t0,0($s0)
@@ -99,6 +101,11 @@ show_and_wait:
 wait_:
     lw $t6,0x8($s1) #get DIP switch state
     beq $t5,$t6,wait_
+    nop
+    li $t6, 1000000
+delay:
+    addiu $t6,$t6,-1
+    bnez $t6,delay
     nop
     jr $ra
     nop
