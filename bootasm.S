@@ -4,7 +4,8 @@
   2012/07/16
  */
 
-#define FLASH_START 0xBE000000
+/* start address of program payload in spi flash */
+#define FLASH_START 0xBA800000
 #define ELF_MAGIC 0x464C457F
 
 /* off = offset from s0 */
@@ -13,30 +14,23 @@
 #define LOAD_WORD_I(dst, off) \
   la $t7, off; \
   addu $t7, $s0, $t7; \
-  lhu dst, 0($t7); \
-  lhu $t7, 2($t7); \
-  sll $t7, $t7, 16; \
-  or dst, dst, $t7
+  lw dst, 0($t7);
 
 #define LOAD_WORD_R(dst, off, base) \
   addiu $t7, base, off;\
   addu $t7, $s0, $t7; \
-  lhu dst, 0($t7); \
-  lhu $t7, 2($t7); \
-  sll $t7, $t7, 16; \
-  or dst, dst, $t7;
+  lw dst, 0($t7);
    
 #assume file base == FLASH_START
 
 
 
 load_elf:
-  la $t0, FLASH_START
-  la $t1, 0x00FF
-  sh $t1, 0($t0)
-
   #addr of elfheader, s0
   la $s0, FLASH_START
+  LOAD_WORD_I($t1, 0) #dummy read
+  LOAD_WORD_I($t1, 0) #dummy read
+  LOAD_WORD_I($t1, 0) #dummy read
   #e_magic
   LOAD_WORD_I($t1, 0)
   la $t0, ELF_MAGIC
