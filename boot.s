@@ -2,37 +2,14 @@
 .set noat
 .globl __start
 __start:
-#ifdef MACH_QEMU
-  li $s0,0xbfd003F8
-  sb $0,2($s0)      #Turn off FIFO
-  li $t1,0x80
-  sb $t1,3($s0)      #DLAB=1
 
-  li $t1,1
-  sb $t1,0($s0)      #DLL=1
-  sb $0,1($s0)       #DLM=0
-
-  li $t1,3
-  sb $t1,3($s0)      #DLAB=0,8N1 Mode
-
-  sb $0,1($s0)       #IER=0
-  sb $0,4($s0)       #MCR=0
-#endif
-
-  li $s0,0xbfd00400
+  li $s0,0xbfd01000
 
   li $t1,0xffffffff #gpio0 all output
   sw $t1,4($s0)
   li $t1,0x0        #gpio1 all input
   sw $t1,0xc($s0)
 
-#ifndef MACH_QEMU
-  lw $t2,0x8($s0) #read DIP switch
-  li $t1,1
-  and $t2,$t2,$t1
-  beq $t1,$t2,flash2ram  #SW0 is high, FlashToRam mode
-  nop
-#endif
 
 uart_cmd:
   li $t0,0x80000
@@ -185,51 +162,36 @@ flash2uart_next:
   nop
 
 getbyte:
-  li $t0,0xbfd003f0
 chk_rx:
-#ifdef MACH_QEMU
-  lb $t1,13($t0)  #LSR
+  li $t0,0xbfd00000
+  lw $t1,0x8($t0) #UART status
   andi $t1,$t1,1
-#else
-  lw $t1,0xc($t0) #UART status
-  andi $t1,$t1,2
-#endif
   beq $t1,$0,chk_rx
   nop
-  lb $v0,0x8($t0)
+  lw $v0,0x0($t0)
   jr $ra
   # sw $t1,0xc($t0) #clear received
   nop
 
 putbyte:
-  li $t0,0xbfd003f0
+  li $t0,0xbfd00000
 chk_tx:
-#ifdef MACH_QEMU
-  lb $t1,13($t0)
-  andi $t1,$t1,0x20
-#else
-  lw $t1,0xc($t0)
-  andi $t1,$t1,1
-#endif
+  lw $t1,0x8($t0) #UART status
+  andi $t1,$t1,4
   beq $t1,$0,chk_tx
   nop
   jr $ra
-  sb $a0,0x8($t0)
+  sw $a0,0x4($t0)
 
 getword:
   li $t4,8
-  li $t0,0xbfd003f0
+  li $t0,0xbfd00000
 chk_rx_w:
-#ifdef MACH_QEMU
-  lb $t1,13($t0)  #LSR
+  lw $t1,0x8($t0) #UART status
   andi $t1,$t1,1
-#else
-  lw $t1,0xc($t0) #UART status
-  andi $t1,$t1,2
-#endif
   beq $t1,$0,chk_rx_w
   nop
-  lb $t2,0x8($t0)
+  lw $t2,0x0($t0)
   # sw $t1,0xc($t0) #clear received
 
   sll $t2,$t2,24
@@ -245,18 +207,13 @@ chk_rx_w:
 
 putword:
   li $t4,8
-  li $t0,0xbfd003f0
+  li $t0,0xbfd00000
 chk_tx_w:
-#ifdef MACH_QEMU
-  lb $t1,13($t0)
-  andi $t1,$t1,0x20
-#else
-  lw $t1,0xc($t0)
-  andi $t1,$t1,1
-#endif
+  lw $t1,0x8($t0)
+  andi $t1,$t1,4
   beq $t1,$0,chk_tx_w
   nop
-  sb $a0,0x8($t0)
+  sw $a0,0x4($t0)
   srl $a0,$a0,8
   srl $t4,$t4,1
   bne $t4,$zero,chk_tx_w
