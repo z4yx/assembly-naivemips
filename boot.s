@@ -2,6 +2,20 @@
 .set noat
 .globl __start
 __start:
+  li $s0,0xbfd03000
+  sw $0,8($s0)       #Turn off FIFO
+  li $t1,0x80
+  sw $t1,0xc($s0)      #DLAB=1
+
+  li $t1,54
+  sw $t1,0($s0)      #DLL=54, 100000000/(16*115200)
+  sw $0,4($s0)       #DLM=0
+
+  li $t1,3
+  sw $t1,0xc($s0)      #DLAB=0,8N1 Mode
+
+  sw $0,4($s0)       #IER=0
+  sw $0,0x10($s0)       #MCR=0
 
   li $s0,0xbfd01000
 
@@ -10,6 +24,11 @@ __start:
   li $t1,0x0        #gpio1 all input
   sw $t1,0xc($s0)
 
+  lw $t2,0x8($s0) #read DIP switch
+  li $t1,1
+  and $t2,$t2,$t1
+  beq $t1,$t2,flash2ram  #SW0 is high, FlashToRam mode
+  nop
 
 uart_cmd:
   li $t0,0x80000
@@ -163,8 +182,8 @@ flash2uart_next:
 
 getbyte:
 chk_rx:
-  li $t0,0xbfd00000
-  lw $t1,0x8($t0) #UART status
+  li $t0,0xbfd03000
+  lw $t1,0x14($t0)  #LSR
   andi $t1,$t1,1
   beq $t1,$0,chk_rx
   nop
@@ -174,20 +193,20 @@ chk_rx:
   nop
 
 putbyte:
-  li $t0,0xbfd00000
+  li $t0,0xbfd03000
 chk_tx:
-  lw $t1,0x8($t0) #UART status
-  andi $t1,$t1,4
+  lw $t1,0x14($t0)  #LSR
+  andi $t1,$t1,0x20
   beq $t1,$0,chk_tx
   nop
   jr $ra
-  sw $a0,0x4($t0)
+  sw $a0,0x0($t0)
 
 getword:
   li $t4,8
-  li $t0,0xbfd00000
+  li $t0,0xbfd03000
 chk_rx_w:
-  lw $t1,0x8($t0) #UART status
+  lw $t1,0x14($t0)  #LSR
   andi $t1,$t1,1
   beq $t1,$0,chk_rx_w
   nop
@@ -207,13 +226,13 @@ chk_rx_w:
 
 putword:
   li $t4,8
-  li $t0,0xbfd00000
+  li $t0,0xbfd03000
 chk_tx_w:
-  lw $t1,0x8($t0)
-  andi $t1,$t1,4
+  lw $t1,0x14($t0)  #LSR
+  andi $t1,$t1,0x20
   beq $t1,$0,chk_tx_w
   nop
-  sw $a0,0x4($t0)
+  sw $a0,0x0($t0)
   srl $a0,$a0,8
   srl $t4,$t4,1
   bne $t4,$zero,chk_tx_w
