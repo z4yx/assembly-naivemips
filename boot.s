@@ -27,8 +27,9 @@ __start:
   lw $t2,0x8($s0) #read DIP switch
   li $t1,1
   and $t2,$t2,$t1
+  li $t3, 0xff000001
   beq $t1,$t2,flash2ram  #SW0 is high, FlashToRam mode
-  nop
+  sw $t3,0($s0)
 
 uart_cmd:
   li $t0,0x80000

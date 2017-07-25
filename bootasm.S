@@ -63,6 +63,9 @@ next_sec:
   beq  $s5, $zero, 3f
   nop
 
+  lui  $t0, 0xa000
+  or   $s4, $s4, $t0
+
 #copy from file_base+p_offset to p_va
 copy_sec:
   LOAD_WORD_R($t0, 0, $s6)
