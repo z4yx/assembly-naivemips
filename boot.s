@@ -17,23 +17,18 @@ __start:
   sw $0,4($s0)       #IER=0
   sw $0,0x10($s0)       #MCR=0
 
-  li $s0,0xbfd01000
+  li $s0,0xbfd0f000
 
-  li $t1,0xffffffff #gpio0 all output
-  sw $t1,4($s0)
-  li $t1,0x0        #gpio1 all input
-  sw $t1,0xc($s0)
-
-  lw $t2,0x8($s0) #read DIP switch
+  lw $t2,0x20($s0) #read DIP switch
   li $t1,1
   and $t2,$t2,$t1
   li $t3, 0xff000001
   beq $t1,$t2,flash2ram  #SW0 is high, FlashToRam mode
-  sw $t3,0($s0)
+  sw $t3,0x10($s0)
 
 uart_cmd:
   li $t0,0x80000
-  sw $t0,0($s0) #LED indicates wait state
+  sw $t0,0x10($s0) #LED indicates wait state
   #get cmd
   jal getbyte
   nop
@@ -84,7 +79,7 @@ uart_cmd:
   nop
 bad_cmd:
   li $t0,0x80000000
-  sw $t0,0($s0) #LED indicates unknown command
+  sw $t0,0x10($s0) #LED indicates unknown command
 stop:
   b stop
   nop
@@ -101,7 +96,7 @@ uart2uart:
   jal getword
   nop
   or $a0,$zero,$v0
-  sw $v0,0($s0) #LED indicates data
+  sw $v0,0x10($s0) #LED indicates data
   jal putword
   nop
   b uart2uart
@@ -111,7 +106,7 @@ uart2ram:
   sll $s3,$s3,2
   addu $s3,$s3,$s2
 uart2ram_next:
-  sw $s2,0($s0) #LED indicates current address
+  sw $s2,0x10($s0) #LED indicates current address
   jal getword
   nop
   sw $v0,0($s2)
@@ -125,7 +120,7 @@ ram2uart:
   sll $s3,$s3,2
   addu $s3,$s3,$s2
 ram2uart_next:
-  sw $s2,0($s0) #LED indicates current address
+  sw $s2,0x10($s0) #LED indicates current address
   lw $a0,0($s2)
   jal putword
   nop
@@ -139,7 +134,7 @@ uart2flash:
   sll $s3,$s3,1
   addu $s3,$s3,$s2
 uart2flash_next:
-  sw $s2,0($s0) #LED indicates current address
+  sw $s2,0x10($s0) #LED indicates current address
   jal getword
   nop
   li $t0,0x40
@@ -168,7 +163,7 @@ flash2uart:
   sll $s3,$s3,2
   addu $s3,$s3,$s2
 flash2uart_next:
-  sw $s2,0($s0) # LED indicates current address
+  sw $s2,0x10($s0) # LED indicates current address
   lhu $a0,0($s2) # 16-bit instruction is required for flash read
   lhu $t0,2($s2)
   sll $t0, $t0, 16
