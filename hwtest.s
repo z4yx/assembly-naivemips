@@ -14,7 +14,7 @@ __start:
     nop
 
     jal memtest
-    nop
+    or  $v0, $0, $0 #default success
     beq $v0, $0, pass_mem
     nop
     li $t0, 0xec120000  #DPY="E1"
@@ -25,7 +25,7 @@ fail_mem:
 
 pass_mem:
     jal flash_test
-    nop
+    or  $v0, $0, $0 #default success
     beq $v0, $0, pass_flash
     nop
     li $t0, 0xecbc0000  #DPY="E2"
@@ -35,6 +35,28 @@ fail_flash:
     nop
 
 pass_flash:
+    jal eth_test
+    or  $v0, $0, $0 #default success
+    beq $v0, $0, pass_eth
+    nop
+    li $t0, 0xecb60000  #DPY="E3"
+    sw $t0, 0($s0)
+fail_eth:
+    b fail_eth
+    nop
+
+pass_eth:
+    jal usb_test
+    or  $v0, $0, $0 #default success
+    beq $v0, $0, pass_usb
+    nop
+    li $t0, 0xecd20000  #DPY="E4"
+    sw $t0, 0($s0)
+fail_usb:
+    b fail_usb
+    nop
+
+pass_usb:
 test_other:
     jal echo
     nop
@@ -140,6 +162,56 @@ chk_tx:
     nop
     jr $ra
     sb $a0,0x8($t0)
+
+usb_test:
+    li $s2, 0xbc020000
+
+    li $t0, 0x0e
+    sb $t0, 0($s2)
+    lbu $t1, 4($s2) #Rev
+
+    li $t2, 0x20
+    beq $t2,$t1,usb_correct
+    nop
+    jr $ra
+    li $v0, 1
+
+usb_correct:
+    jr $ra
+    li $v0, 0
+
+
+eth_test:
+    li $s2, 0xbc020100
+
+    li $t0, 0x29
+    sb $t0, 0($s2)
+    lbu $t1, 4($s2) #VIDH
+    sll $t1, $t1, 8
+    li $t0, 0x28
+    sb $t0, 0($s2)
+    lbu $t2, 4($s2) #VIDL
+    or  $t1, $t1, $t2
+    sll $t1, $t1, 8
+    li $t0, 0x2b
+    sb $t0, 0($s2)
+    lbu $t2, 4($s2) #PIDH
+    or  $t1, $t1, $t2
+    sll $t1, $t1, 8
+    li $t0, 0x2a
+    sb $t0, 0($s2)
+    lbu $t2, 4($s2) #PIDL
+    or  $t1, $t1, $t2
+
+    li $t2, 0x0a469000
+    beq $t2,$t1,eth_correct
+    nop
+    jr $ra
+    li $v0, 1
+
+eth_correct:
+    jr $ra
+    li $v0, 0
 
 flash_test:
     or $s1,$ra,0
