@@ -29,8 +29,12 @@ __start:
 #ifndef MACH_QEMU
   lw $t2,0x8($s0) #read DIP switch
   li $t1,1
-  and $t2,$t2,$t1
-  beq $t1,$t2,flash2ram  #SW0 is high, FlashToRam mode
+  and $t1,$t2,$t1
+  bnez $t1,flash2ram  #SW0 is high, FlashToRam mode
+  nop
+  li $t1,2
+  and $t1,$t2,$t1
+  bnez $t1,ram_entry  #SW1 is high, Jump to RAM address
   nop
 #endif
 
@@ -98,6 +102,11 @@ run:
 
 flash2ram:
   b load_elf  #implemented in bootasm.S
+  nop
+
+ram_entry:
+  li $t0, 0x80000000
+  jr $t0
   nop
 
 uart2uart:
