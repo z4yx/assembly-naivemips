@@ -14,6 +14,7 @@ re:
   li $t3,0xdeadbeef
   li $t4,1103515245
 wr_mem:
+  sw $t0,0($a0)
   sw $t3, 0($t0)
   mul $t3,$t3,$t4
   addiu $t3,$t3,12345
@@ -25,6 +26,7 @@ wr_mem:
   li $t3,0xdeadbeef
   li $t4,1103515245
 rd_mem:
+  sw $t0,0($a0)
   lw $t2, 0($t0)
   bne $t2,$t3,wrong
   nop
