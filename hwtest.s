@@ -3,6 +3,7 @@
 .globl __start
 __start:
     
+    li $k0, 0
     li $s0,0xbfd00400
 
     li $t1,0xffffffff #gpio0 all output
@@ -10,37 +11,79 @@ __start:
     li $t1,0x0        #gpio1 all input
     sw $t1,0xc($s0)
 
-    jal vga
-    nop
-
     jal memtest
-    nop
+    or  $v0, $0, $0 #default success
     beq $v0, $0, pass_mem
     nop
-    li $t0, 0xec120000  #DPY="E1"
-    sw $t0, 0($s0)
-fail_mem:
-    b fail_mem
-    nop
+    ori $k0, $k0, 1
+#     li $t0, 0xec120000  #DPY="E1"
+#     sw $t0, 0($s0)
+# fail_mem:
+#     b fail_mem
+#     nop
 
 pass_mem:
     jal flash_test
-    nop
+    or  $v0, $0, $0 #default success
     beq $v0, $0, pass_flash
     nop
-    li $t0, 0xecbc0000  #DPY="E2"
-    sw $t0, 0($s0)
-fail_flash:
-    b fail_flash
-    nop
+    ori $k0, $k0, 2
+#     li $t0, 0xecbc0000  #DPY="E2"
+#     sw $t0, 0($s0)
+# fail_flash:
+#     b fail_flash
+#     nop
 
 pass_flash:
+    jal eth_test
+    or  $v0, $0, $0 #default success
+    beq $v0, $0, pass_eth
+    nop
+    ori $k0, $k0, 4
+#     li $t0, 0xecb60000  #DPY="E3"
+#     sw $t0, 0($s0)
+# fail_eth:
+#     b fail_eth
+#     nop
+
+pass_eth:
+    jal usb_test
+    or  $v0, $0, $0 #default success
+    beq $v0, $0, pass_usb
+    nop
+    ori $k0, $k0, 8
+#     li $t0, 0xecd20000  #DPY="E4"
+#     sw $t0, 0($s0)
+# fail_usb:
+#     b fail_usb
+#     nop
+
+pass_usb:
+    bne $k0,$0,show_error
+    li $t0, 0x7e7e0000  #DPY="00"
+    b test_other
+    sw $t0, 0($s0)
+show_error:
+    li $t0, 0xecec0000  #DPY="EE"
+    or $t0,$k0,$t0
+    sll $k0,$k0,8
+    xori $k0,$k0,0xff00
+    or $t0,$k0,$t0
+    sw $t0, 0($s0)
+#    b show_error
+#    nop
+
 test_other:
+    jal vga
+    nop
+
+    lw $s3,0x8($s0) #get initial DIP switch state
+test_other_loop:
     jal echo
     nop
     jal disp
     nop
-    b test_other
+    b test_other_loop
     nop
 
 
@@ -91,14 +134,13 @@ vga_loop:
     jr $ra
     nop
 
-disp: 
-    addiu $s3,$s3,1
-    srl $t0,$s3,17
-    andi $t0,$t0,1
-    subu $t0,$0,$t0
+disp:
     lw $t2,0x8($s0) #get DIP switch state
-    xor $t2,$t2,$t0
+    beq $s3,$t2,disp_ret #do not update display until switch changed
+    nop
     sw $t2,0($s0)   #set LED
+    or $s3,$0,$t2
+disp_ret:
     jr $ra
     nop
 
@@ -141,6 +183,56 @@ chk_tx:
     jr $ra
     sb $a0,0x8($t0)
 
+usb_test:
+    li $s2, 0xbc020000
+
+    li $t0, 0x0e
+    sb $t0, 0($s2)
+    lbu $t1, 4($s2) #Rev
+
+    li $t2, 0x20
+    beq $t2,$t1,usb_correct
+    nop
+    jr $ra
+    li $v0, 1
+
+usb_correct:
+    jr $ra
+    li $v0, 0
+
+
+eth_test:
+    li $s2, 0xbc020100
+
+    li $t0, 0x29
+    sb $t0, 0($s2)
+    lbu $t1, 4($s2) #VIDH
+    sll $t1, $t1, 8
+    li $t0, 0x28
+    sb $t0, 0($s2)
+    lbu $t2, 4($s2) #VIDL
+    or  $t1, $t1, $t2
+    sll $t1, $t1, 8
+    li $t0, 0x2b
+    sb $t0, 0($s2)
+    lbu $t2, 4($s2) #PIDH
+    or  $t1, $t1, $t2
+    sll $t1, $t1, 8
+    li $t0, 0x2a
+    sb $t0, 0($s2)
+    lbu $t2, 4($s2) #PIDL
+    or  $t1, $t1, $t2
+
+    li $t2, 0x0a469000
+    beq $t2,$t1,eth_correct
+    nop
+    jr $ra
+    li $v0, 1
+
+eth_correct:
+    jr $ra
+    li $v0, 0
+
 flash_test:
     or $s1,$ra,0
     li $s2, 0xbe000000
@@ -148,47 +240,55 @@ flash_test:
     li $t0, 0x90
     sh $t0, 0($s2)
     lhu $t1, 0($s2) #Manufacture code
+    li $t2, 0x89
+    bne $t2, $t1, wrong_maf_code
+    nop
 
     sh $t0, 0($s2)
     lhu $t1, 2($s2) #Device code
-
-    li $t0, 0x60
-    li $t1, 0xd0
-    sh $t0, 0($s2)
-    sh $t1, 0($s2) #Clear Lock
-    jal wait_ready
+    li $t2, 0x17
+    bne $t2, $t1, wrong_dev_code
     nop
 
-    li $t0, 0x20
-    li $t1, 0xd0
-    sh $t0, 0($s2)
-    sh $t1, 0($s2) #erase block 0
-    jal wait_ready
-    nop
+#    li $t0, 0x60
+#    li $t1, 0xd0
+#    sh $t0, 0($s2)
+#    sh $t1, 0($s2) #Clear Lock
+#    jal wait_ready
+#    nop
+
+#    li $t0, 0x20
+#    li $t1, 0xd0
+#    sh $t0, 0($s2)
+#    sh $t1, 0($s2) #erase block 0
+#    jal wait_ready
+#    nop
+
+#    li $t0, 0xff
+#    sh $t0, 0($s2)
+#    lhu $t0, 0($s2)
+#    li $t1, 0xffff
+#    bne $t0, $t1, erase_fail
+#    nop
+
+#    li $t0, 0x40
+#    li $t1, 0x55aa
+#    sh $t0, 0($s2) 
+#    sh $t1, 0($s2) #byte program
+#    jal wait_ready
+#    nop
 
     li $t0, 0xff
     sh $t0, 0($s2)
-    lhu $t0, 0($s2)
-    li $t1, 0xffff
-    bne $t0, $t1, erase_fail
-    nop
-
-    li $t0, 0x40
-    li $t1, 0x55aa
-    sh $t0, 0($s2) 
-    sh $t1, 0($s2) #byte program
-    jal wait_ready
-    nop
-
-    li $t0, 0xff
-    sh $t0, 0($s2)
-    lhu $t0, 0($s2)
-    li $t1, 0x55aa
-    bne $t0, $t1, prog_fail
-    nop
+#    lhu $t0, 0($s2)
+#    li $t1, 0x55aa
+#    bne $t0, $t1, prog_fail
+#    nop
     or $ra,$s1,0
     jr $ra
     li $v0, 0
+wrong_dev_code:
+wrong_maf_code:
 erase_fail:
 prog_fail:
 time_fail:
