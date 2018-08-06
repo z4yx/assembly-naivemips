@@ -147,6 +147,43 @@ ram2uart_next:
   b uart_cmd
   nop
 
+.org 0x200  # exception handler for TLB Refill
+handle_tlb_refill:
+  li $a0, 0x52424c54 # "TLBR"
+  jal putword
+  nop
+tlbr_loop:
+  b tlbr_loop
+  nop
+
+.org 0x380 # general exception
+handle_general:
+  mfc0 $k0,$13
+  srl $k0,$k0,2
+  andi $k0,0x1f
+  sll $k0,$k0,24
+  li $a0, 0x30505845 # "EXP0"
+  add $a0,$a0,$k0
+  jal putword
+  nop
+
+  li $a0, 0x3d435045 # "EPC="
+  jal putword
+  nop
+  mfc0 $a0,$14
+  jal putword
+  nop
+
+  li $a0, 0x56646142 # "BadV"
+  jal putword
+  nop
+  mfc0 $a0,$8
+  jal putword
+  nop
+exp_loop:
+  b exp_loop
+  nop
+
 uart2flash:
   sll $s3,$s3,1
   addu $s3,$s3,$s2
