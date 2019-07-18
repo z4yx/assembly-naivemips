@@ -1,7 +1,7 @@
 
 GCCPREFIX:=mips-sde-elf-
 
-override CFLAGS	+= -fno-builtin -nostdlib  -nostdinc -g  -EL -G0 -Wformat -O2 -mno-float
+override CFLAGS	+= -fno-builtin -nostdlib  -nostdinc -g  -EL -G0 -Wformat -O2
 override LDFLAGS	+= -nostdlib -EL -n -G0
 
 CC :=$(GCCPREFIX)gcc
