@@ -8,7 +8,7 @@ __start:
     li $s2, 1
     lw $a1, 4($s0) # selection
     lw $a2, 8($s0) # random
-    addi $v1, $s0, 0xc
+    addi $v1, $s0, 0x10 # v1 = s0 + 0x10
 t_clo:
     andi $t0, $a1, 1
     beq $t0, $0, t_clz # skip test
@@ -76,15 +76,15 @@ t_lh:
     nop
     li  $t1, 0x01b283d4
     sw  $t1, 0x100($s0)
-    lh $t1, 0x100($s0)
+    lh $t1, 0x102($s0)
     li  $t2, 0x01b2
     bne $t1, $t2, t_movn
     nop
-    lh $t1, 0x102($s0)
+    lh $t1, 0x100($s0)
     li  $t2, 0xFFFF83d4
     bne $t1, $t2, t_movn
     nop
-    lh $t1, 10($s0)
+    lh $t1, 0xa($s0)
     sw $t1, 0($v1)
     addi $v1, $v1, 4
     ori $s1, $s1, 8
@@ -214,7 +214,11 @@ tret:
     or $v0, $v0, $s1
     xor $v0, $v0, $a2
     sw $v0, 0($s0)
-    sw $v1, 0xc($s0)
+    sw $v1, 0xc($s0) # *(s0+0xc) = v1
 end:
     j  end
     nop
+    #.org 0x100000
+    #.long 0x55555555
+    #.long 0x3ff
+    #.long 0x12345678
