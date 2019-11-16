@@ -22,8 +22,10 @@ t_clo:
     clo $t2, $t1
     bne $t2, $0, t_clz
     nop
-    clo $t1, $a2
-    sw $t1, 0($v1) # *v1 = clo(a2)
+    lui $t1, 0xFFFF
+    xor $t1, $a2, $t1
+    clo $t1, $t1
+    sw $t1, 0($v1) # *v1 = clo(a2^0xFFFF0000)
     addi $v1, $v1, 4
     ori $s1, $s1, 1
 t_clz:
