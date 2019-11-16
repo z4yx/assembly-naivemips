@@ -1,5 +1,5 @@
 
-GCCPREFIX:=mipsel-linux-gnu-
+GCCPREFIX?=mipsel-linux-gnu-
 
 override CFLAGS	+= -mno-abicalls -fno-pic -x assembler-with-cpp -EL -nostdlib -nostdinc -static -g
 override LDFLAGS += -nostdlib -EL -static
