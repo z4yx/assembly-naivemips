@@ -8,7 +8,7 @@ __start:
     li $s2, 1
     lw $a1, 4($s0) # selection
     lw $a2, 8($s0) # random
-    addi $v1, $s0, 0x10 # v1 = s0 + 0x10
+    addiu $v1, $s0, 0x10 # v1 = s0 + 0x10
 t_clo:
     andi $t0, $a1, 1
     beq $t0, $0, t_clz # skip test
@@ -26,7 +26,7 @@ t_clo:
     xor $t1, $a2, $t1
     clo $t1, $t1
     sw $t1, 0($v1) # *v1 = clo(a2^0xFFFF0000)
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 1
 t_clz:
     andi $t0, $a1, 2
@@ -43,7 +43,7 @@ t_clz:
     nop
     clz $t1, $a2
     sw $t1, 0($v1) # *v1 = clz(a2)
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 2
 t_lbu:
     andi $t0, $a1, 4
@@ -70,7 +70,7 @@ t_lbu:
 
     lbu $t1, 9($s0)
     sw $t1, 0($v1)
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 4
 t_lh:
     andi $t0, $a1, 8
@@ -88,7 +88,7 @@ t_lh:
     nop
     lh $t1, 0xa($s0)
     sw $t1, 0($v1)
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 8
 t_movn:
     andi $t0, $a1, 16
@@ -106,7 +106,7 @@ t_movn:
     andi $t2, $a2, 1
     movn $t1, $a2, $t2
     sw $t1, 0($v1) # *v1 = a2 & 1 ? a2 : a2^0x5555
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 16
 t_movz:
     andi $t0, $a1, 32
@@ -124,7 +124,7 @@ t_movz:
     andi $t2, $a2, 1
     movz $t1, $a2, $t2
     sw $t1, 0($v1) # *v1 = a2 & 1 ? a2^0xAAAA : a2
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 32
 t_nor:
     andi $t0, $a1, 64
@@ -141,7 +141,7 @@ t_nor:
     li $t1, 0xAAA0055F
     nor $t1, $a2, $t1
     sw $t1, 0($v1) # *v1 = ~(a2 | 0xAAA0055F)
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 64
 t_sra:
     andi $t0, $a1, 128
@@ -169,7 +169,7 @@ t_sra:
     or $t2, $a2, $t2
     sra $t1, $t2, 16
     sw $t1, 0($v1) # *v1 = (a2 | 0x80000000) >> 16
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 128
 t_srlv:
     andi $t0, $a1, 256
@@ -188,7 +188,7 @@ t_srlv:
 
     srlv $t1, $a2, $a2
     sw $t1, 0($v1) # *v1 = a2 >>> (a2 & 31)
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 256
 t_subu:
     andi $t0, $a1, 512
@@ -201,7 +201,7 @@ t_subu:
     bne $t1, $t3, tret
     nop
     li $t2, 0xFFFFFFFF
-    addi $t3, $t1, 1
+    addiu $t3, $t1, 1
     subu $t1, $t1, $t2
     bne $t1, $t3, tret
     nop
@@ -209,7 +209,7 @@ t_subu:
     li $t2, 0x5555
     subu $t1, $a2, $t2
     sw $t1, 0($v1) # *v1 = a2 - 0x5555
-    addi $v1, $v1, 4
+    addiu $v1, $v1, 4
     ori $s1, $s1, 512
 tret:
     lui $v0, 0xfeed

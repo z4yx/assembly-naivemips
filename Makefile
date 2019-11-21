@@ -1,7 +1,7 @@
 
 GCCPREFIX?=mipsel-linux-gnu-
 
-override CFLAGS	+= -mno-abicalls -fno-pic -x assembler-with-cpp -EL -nostdlib -nostdinc -static -g
+override CFLAGS	+= -mips32r2 -mno-abicalls -fno-pic -x assembler-with-cpp -EL -nostdlib -nostdinc -static -g
 override LDFLAGS += -nostdlib -EL -static
 
 CC :=$(GCCPREFIX)gcc
