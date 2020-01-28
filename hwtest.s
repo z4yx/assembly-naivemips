@@ -1,5 +1,8 @@
 .set noreorder
 .set noat
+
+#define BOARD_THINROUTER
+
 .globl __start
 __start:
     
@@ -183,6 +186,81 @@ chk_tx:
     jr $ra
     sb $a0,0x8($t0)
 
+#ifdef BOARD_THINROUTER
+usb_test:
+    li $s2, 0xbc020200 # SPI Ctl
+    or $s1,$ra,$zero
+    li $t0, 1
+    sw $t0, 4($s2) # Chip Select
+    
+    li $t0, 0x8006
+    jal delay_1500ns
+    sw $t0, 0($s2)
+    
+    li $t0, 0x8057
+    jal delay_1500ns
+    sw $t0, 0($s2)
+    
+    li $t0, 0x80FF
+    sw $t0, 0($s2)
+usb_wait_spi:
+    lw $t0, 0($s2)
+    andi $t1, $t0, 0x4000 # Busy bit
+    bne $zero, $t1, usb_wait_spi
+    nop
+
+    xori $t1, $t1, 0xA8
+    li $v0, 1
+    movz $v0, $zero, $t1
+
+    sw $zero, 4($s2) # Chip Select
+    or $ra,$s1,$zero
+    jr $ra
+    nop
+delay_1500ns:
+    li $t1, 50
+    li $t2, 1
+dly_repeat:
+    bne $zero, $t1, dly_repeat
+    subu $t1, $t1, $t2
+    jr $ra
+    nop
+
+eth_test:
+    li $s2, 0xbc020200 # SPI Ctl
+    or $s1,$ra,$zero
+    li $t0, 2
+    sw $t0, 4($s2) # Chip Select
+    
+    li $t0, 0x8050
+    jal eth_wait_spi
+    sw $t0, 0($s2)
+    
+    li $t0, 0x8000
+    jal eth_wait_spi
+    sw $t0, 0($s2)
+
+    li $t0, 0x80FF
+    jal eth_wait_spi
+    sw $t0, 0($s2)
+
+    lw $t1, 0($s2)
+    xori $t1, $t1, 0x87
+    li $v0, 1
+    movz $v0, $zero, $t1
+
+    sw $zero, 4($s2) # Chip Select
+    or $ra,$s1,$zero
+    jr $ra
+    nop
+eth_wait_spi:
+    lw $t0, 0($s2)
+    andi $t1, $t0, 0x4000 # Busy bit
+    bne $zero, $t1, eth_wait_spi
+    nop
+    jr $ra
+    nop
+#else
 usb_test:
     li $s2, 0xbc020000
 
@@ -232,6 +310,7 @@ eth_test:
 eth_correct:
     jr $ra
     li $v0, 0
+#endif
 
 flash_test:
     or $s1,$ra,0
