@@ -32,10 +32,10 @@ sim: $(MEMS)
 	$(foreach n, $^ , spilt_word.py $@ <$(n);) 
 
 %.coe: %.rom.bin
-	bin2coe.py  32 <$^ >$@
+	./bin2coe.py  32 <$^ >$@
 
 %.mif: %.rom.bin
-	bin2mif.py  32 <$^ >$@
+	./bin2mif.py  32 <$^ >$@
 
 %.rom.bin: %.rom.elf
 	$(OBJCOPY) -j .text -O binary  -S $^ $@
