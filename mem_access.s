@@ -9,7 +9,7 @@ __start:
     li $t1,0x0        #gpio1 all input
     sw $t1,0xc($s1)
 
-    li  $s0,0x80410000
+    li  $s0,0x80010000
     li  $a0,0x12345678
 
     sw $a0,0($s0)
@@ -41,32 +41,32 @@ __start:
     jal show_and_wait
     nop
     sb $a0,0($s0)
-    addi $a0,$a0,1
+    addiu $a0,$a0,1
     sb $a0,1($s0)
-    addi $a0,$a0,1
+    addiu $a0,$a0,1
     sb $a0,2($s0)
-    addi $a0,$a0,1
+    addiu $a0,$a0,1
     sb $a0,3($s0)
     lw $t0,0($s0)
     jal show_and_wait
     nop
 
-    addi $a0,$a0,1
+    addiu $a0,$a0,1
     sb $a0,0($s0)
     lw $t0,0($s0)
     jal show_and_wait
     nop
-    addi $a0,$a0,1
+    addiu $a0,$a0,1
     sb $a0,1($s0)
     lw $t0,0($s0)
     jal show_and_wait
     nop
-    addi $a0,$a0,1
+    addiu $a0,$a0,1
     sb $a0,2($s0)
     lw $t0,0($s0)
     jal show_and_wait
     nop
-    addi $a0,$a0,1
+    addiu $a0,$a0,1
     sb $a0,3($s0)
     lw $t0,0($s0)
     jal show_and_wait
