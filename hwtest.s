@@ -209,9 +209,10 @@ usb_wait_spi:
     bne $zero, $t1, usb_wait_spi
     nop
 
-    xori $t1, $t1, 0xA8
+    sw $t0, 0($s0)
+    xori $t0, $t0, 0xA8
     li $v0, 1
-    movz $v0, $zero, $t1
+    movz $v0, $zero, $t0
 
     sw $zero, 4($s2) # Chip Select
     or $ra,$s1,$zero
