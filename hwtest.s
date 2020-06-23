@@ -203,6 +203,10 @@ usb_test:
     
     li $t0, 0x80FF
     sw $t0, 0($s2)
+
+    nop # Busy bit will be set in one cycle
+    nop
+
 usb_wait_spi:
     lw $t0, 0($s2)
     andi $t1, $t0, 0x4000 # Busy bit
@@ -255,6 +259,8 @@ eth_test:
     jr $ra
     nop
 eth_wait_spi:
+    nop # Busy bit will be set in one cycle
+    nop
     lw $t0, 0($s2)
     andi $t1, $t0, 0x4000 # Busy bit
     bne $zero, $t1, eth_wait_spi
