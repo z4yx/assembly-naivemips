@@ -233,7 +233,7 @@ eth_test:
     li $t0, 2
     sw $t0, 4($s2) # Chip Select
     
-    li $t0, 0x8050
+    li $t0, 0x8060
     jal eth_wait_spi
     sw $t0, 0($s2)
     
